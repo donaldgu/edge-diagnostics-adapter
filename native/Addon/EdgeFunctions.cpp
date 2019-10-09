@@ -172,7 +172,7 @@ NAN_METHOD(getEdgeInstances)
                 {
                     DWORD length = ::GetModuleFileNameEx(handle, nullptr, actualProcessName.GetBufferSetLength(MAX_PATH), MAX_PATH);
                     actualProcessName.ReleaseBuffer(length);
-                    isEdgeContentProcess = (actualProcessName.Find(L"MicrosoftEdgeCP.exe") == actualProcessName.GetLength() - 19);
+                    isEdgeContentProcess = (actualProcessName.Find(L"MicrosoftEdgeCP.exe") == actualProcessName.GetLength() - 19) || (actualProcessName.Find(L"WWAHost.exe") != -1);
 
                     actualProcessName = ::PathFindFileNameW(actualProcessName);
                 }
@@ -636,11 +636,11 @@ NAN_METHOD(createNetworkProxyFor)
     path.Append(L"\\..\\..\\lib\\");
     path.Append(L"NetworkProxy.exe");
 
-    LPDWORD processId;
-    GetWindowThreadProcessId(hwnd, processId);
+    DWORD processId;
+    GetWindowThreadProcessId(hwnd, &processId);
 
     CString arguments;
-    arguments.Format(L"--process-id=%d", *processId);
+    arguments.Format(L"--process-id=%d", processId);
 
     // Launch the process
     STARTUPINFO si = { 0 };

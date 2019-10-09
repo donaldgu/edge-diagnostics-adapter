@@ -212,6 +212,16 @@ export module EdgeAdapter {
             if (succeeded && networkInstanceId) {
                 // Forward messages to the proxy
                 ws.on('message', (msg: ws.Data) => {
+                    if (typeof msg === "string" && msg.search("Debugger.setBreakpointByUrl") !== -1) {
+                        let obj = JSON.parse(msg);
+                        let urlCheck = obj["params"]["url"];
+                        let urlRegex = obj["params"]["urlRegex"];
+                        if (!urlCheck && urlRegex) {
+                            obj["params"]["url"] = this.convertUrlRegex(obj["params"]["urlRegex"]);
+                            delete obj["params"]["urlRegex"];
+                            msg = JSON.stringify(obj);
+                        }
+                    }
                     if (this._diagLogging) {
                         console.log("Client:", instanceId, msg);
                     }
@@ -242,6 +252,12 @@ export module EdgeAdapter {
                 // No matching Edge instance
                 ws.close();
             }
+        }
+
+        private convertUrlRegex(urlReg:string):string {
+            var regex:RegExp = /\\/g;
+            const url:string = urlReg.replace(regex, "");
+            return url;
         }
 
         private log(message: string): void {
